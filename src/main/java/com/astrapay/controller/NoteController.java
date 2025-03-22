@@ -1,6 +1,8 @@
 package com.astrapay.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -20,18 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 import com.astrapay.dto.NoteDto;
 import com.astrapay.service.NoteService;
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
-@CrossOrigin(origins = "http://localhost:4200")
 @RestController
+@RequestMapping("/notes")
+@CrossOrigin(origins = "http://localhost:4200")
 @Validated
 @Slf4j
-@Api(value = "NotesController")
-@RequestMapping("/notes")
 public class NoteController {
 
     private final NoteService noteService;
@@ -57,9 +57,14 @@ public class NoteController {
             @ApiResponse(code = 201, message = "Note created successfully"),
             @ApiResponse(code = 400, message = "Invalid input")
     })
-    public ResponseEntity<NoteDto> addNote(@Valid @RequestBody NoteDto noteDto) {
+    public ResponseEntity<Map<String, Object>> addNote(@Valid @RequestBody NoteDto noteDto) {
         NoteDto savedNote = noteService.addNote(noteDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedNote);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Note created successfully");
+        response.put("data", savedNote);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
@@ -68,13 +73,15 @@ public class NoteController {
             @ApiResponse(code = 200, message = "Note deleted successfully"),
             @ApiResponse(code = 404, message = "Note not found")
     })
-    public ResponseEntity<Void> deleteNote(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteNote(@PathVariable Long id) {
         boolean deleted = noteService.deleteNote(id);
+
         if (deleted) {
-            return ResponseEntity.noContent().build();
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Note deleted successfully");
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
-
 }
